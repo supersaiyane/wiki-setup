@@ -1,0 +1,8 @@
+{
+  "label": "Sample App",
+  "position": 99,
+  "link": {
+    "type": "doc",
+    "id": "sample-app/index"
+  }
+}
