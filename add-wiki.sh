@@ -144,6 +144,23 @@ if [[ "$MD_COUNT" -eq 0 ]]; then
   echo "Warning: No .md files found. The wiki will be empty."
 fi
 
+# ---- Step 1b: Fix MDX-incompatible angle brackets ----
+# MDX treats <word> as JSX tags even inside backtick spans.
+# Replace < and > with HTML entities in .md files (skip fenced code blocks).
+for md_file in "$SCRIPT_DIR/$DOCS_DIR"/*.md; do
+  [[ -f "$md_file" ]] || continue
+  python3 -c "
+import re, sys
+text = open(sys.argv[1]).read()
+parts = re.split(r'(\`\`\`[\s\S]*?\`\`\`)', text)
+for i in range(0, len(parts), 2):
+    # Outside fenced code blocks: escape bare <word> patterns
+    parts[i] = re.sub(r'<([a-zA-Z][a-zA-Z0-9_-]*)>', r'\&lt;\1\&gt;', parts[i])
+open(sys.argv[1], 'w').write(''.join(parts))
+" "$md_file"
+done
+echo "==> Sanitized angle brackets for MDX compatibility"
+
 # ---- Step 2: Count existing wikis (for position) ----
 POSITION=$(find "$SCRIPT_DIR/docs" -maxdepth 1 -type d | wc -l | tr -d ' ')
 
